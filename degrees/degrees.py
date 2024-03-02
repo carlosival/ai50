@@ -104,24 +104,26 @@ def shortest_path(source, target):
     frontier = StackFrontier()
     frontier.add(Node(source,None,neighbors_for_person(source)))
 
-    return shortest_path_helper(source,target,frontier,already,path)
+    return shortest_path_helper(target,frontier,already,path)
 
 
 
-def shortest_path_helper(source,target,frontier,already,path):
+def shortest_path_helper(target,frontier,already,path):
     if frontier.empty(): 
         return None
+    
+    source = frontier.remove()
     already.add(source.state)
 
     for (movie_id, person_id) in source.action:
-        if person_id == target:  ## Found not need to wait
+        if person_id == target:  # Found not need to wait
            path.add((movie_id,target))
            return path
         if person_id not in already and not frontier.contains_state(person_id):
-           frontier.add(Node(movie_id,source,neighbors_for_person(person_id))) 
+           frontier.add(Node(person_id,source,neighbors_for_person(person_id))) 
     
     
-    return shortest_path_helper(frontier.remove(),target,frontier,already,path)
+    return shortest_path_helper(target,frontier,already,path)
 
 
 def person_id_for_name(name):
