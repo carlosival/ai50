@@ -1,10 +1,14 @@
 import heapq
 
 class Node():
-    def __init__(self, state, parent, action):
+    def __init__(self, state, parent, action, score):
         self.state = state
         self.parent = parent
         self.action = action
+        self.score = score
+    
+    def __lt__(self, other):
+        return self
 
 
 class StackFrontier():
@@ -41,12 +45,12 @@ class QueueFrontier(StackFrontier):
 
 class HeapFrontier():
     def __init__(self):
-        self.frontier = heapq()
+        self.frontier = []
         self.lookup = {}
 
     def add(self, node):
-        self.lookup[node.state] = node.state
-        self.frontier.append((1/node.actions,node))
+        self.lookup[node.state[1]] = node.state[1]
+        heapq.heappush(self.frontier,(node.score,node))
 
     def empty(self):
         return len(self.frontier) == 0
@@ -55,9 +59,8 @@ class HeapFrontier():
         if self.empty():
             raise Exception("empty frontier")
         else:
-            node = heapq.heappop(self.frontier)
-            remove = self.lookup.pop(remove.state)
-            
+            node = heapq.heappop(self.frontier)[1]
+            self.lookup.pop(node.state[1])  
             return node
     
     def contains_state(self, state):

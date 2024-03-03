@@ -1,7 +1,7 @@
 import csv
 import sys
 
-from util import Node, StackFrontier, QueueFrontier
+from util import Node, StackFrontier, QueueFrontier, HeapFrontier
 
 # Maps names to a set of corresponding person_ids
 names = {}
@@ -91,39 +91,64 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-    if(source == None or target == None):
-        return []
+    # Keep track of number of states explored
+    num_explored = 0
 
-    if source == target:
-        ### Find one of the movie Id of source
-        source_movie_id = next(iter(people[source]["movie"]))
-        return [( source_movie_id,source)] 
+    actions = neighbors_for_person(source)
+    score = num_explored + 1/len(actions)
 
-    already = set()
-    path = list()
-    frontier = StackFrontier()
-    frontier.add(Node(source,None,neighbors_for_person(source)))
+    # Initialize frontier to just the starting position
+    start = Node((None,source), parent=None, action=actions, score=score)
+    frontier = HeapFrontier()
+    frontier.add(start)
 
-    return shortest_path_helper(target,frontier,already,path)
+    # Initialize an empty explored set
+    explored = set()
+ 
+    while True:
+        # If nothing left in frontier, then no path
+        if frontier.empty():
+            return None
+        
+        # Choose a node from the frontier
+        node = frontier.remove()
+        num_explored += 1
+
+        # If node is the goal, then we have a solution
+        if node.state[1] == target:
+            #Construct the solution through backtracking
+            path = list()
+            while( node.parent is not None):
+                path.append((node.state[0],node.state[1]))
+                node = node.parent
+            
+            path.reverse()
+            return path
+        
+        # Mark node as explored
+        explored.add(node.state[1])
 
 
+        # Add neighbors to frontier
+        for movie_id,person_id  in node.action:
 
-def shortest_path_helper(target,frontier,already,path):
-    if frontier.empty(): 
-        return None
-    
-    source = frontier.remove()
-    already.add(source.state)
+            # If node is the goal, then we have a solution
+            if person_id == target:
+                #Construct the solution through backtracking
+                pathx = list()
+                pathx.append((movie_id,person_id))
+                while( node.parent is not None):
+                    pathx.append((node.state[0],node.state[1]))
+                    node = node.parent
+                pathx.reverse()
+                return pathx
 
-    for (movie_id, person_id) in source.action:
-        if person_id == target:  # Found not need to wait
-           path.add((movie_id,target))
-           return path
-        if person_id not in already and not frontier.contains_state(person_id):
-           frontier.add(Node(person_id,source,neighbors_for_person(person_id))) 
-    
-    
-    return shortest_path_helper(target,frontier,already,path)
+            actions = neighbors_for_person(person_id)
+            score = num_explored + 1/len(actions)
+            if not frontier.contains_state(person_id) and person_id not in explored:
+                child = Node(state=(movie_id,person_id), parent=node, action=actions, score=score)
+                frontier.add(child)
+        
 
 
 def person_id_for_name(name):
