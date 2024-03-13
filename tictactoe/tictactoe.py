@@ -52,8 +52,11 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
+    if (action[0] <  0 or action[0] > 2) or (action[1] < 0 or action[1] > 2):
+        raise Exception("outBound")
+
     if board[action[0]][action[1]] != EMPTY:
-        raise RuntimeError("Invalid Action")
+        raise Exception("Invalid Action")
 
     newboard = [[cell for cell in row] for row in board]
 
